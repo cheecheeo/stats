@@ -17,33 +17,32 @@ import qualified Data.Vector as V
 import Control.Applicative ((<$>))
 import qualified Control.Monad as M
 
-newtype Quartiles = Quartiles (Double, Double, Double, Double, Double)
-  deriving (Show)
+newtype Stat = Stat (Text, Vector Double -> Double)
 
-quartiles :: Vector Double -> Quartiles
-quartiles xs = Quartiles (V.minimum xs, go 1, go 2, go 3, V.maximum xs)
-  where go quantile = S.weightedAvg quantile 4 xs
+numSamples, average, minimumStat, first, median, third, maximumStat :: Stat
+numSamples = Stat ("Samples: ", fromIntegral . V.length)
+average = Stat ("Average: ", SS.mean)
+minimumStat = Stat ("Minimum: ", V.minimum)
+first = Stat ("25th percentile: ", quantile 1)
+median = Stat ("50th percentile: ", quantile 2)
+third = Stat ("75th percentile: ", quantile 3)
+maximumStat = Stat ("Maximum: ", V.maximum)
 
-additionalStatistics :: Vector Double -> (Int, Double, Quartiles)
-additionalStatistics xs = (V.length xs, SS.mean xs, quartiles xs)
+quantile :: Int -> Vector Double -> Double
+quantile q xs = S.weightedAvg q 4 xs
 
-headerAndAdditionalStatistics :: [(Text, Double)] -> (Text, (Int, Double, Quartiles))
-headerAndAdditionalStatistics xs = (head headers, additionalStatistics (V.fromList sample))
-  where (headers, sample) = unzip xs
+allStats :: [Stat]
+allStats = [numSamples, average, minimumStat, first, median, third, maximumStat]
+
+headerAndStats :: [(Text, Double)] -> IO ()
+headerAndStats hss = do
+  M.unless (T.strip header == "") (TIO.putStrLn header)
+  mapM_ (\(Stat (text, stat)) -> TIO.putStrLn (T.append text ((tshow . stat . V.fromList) samples))) allStats
+  where (headers, samples) = unzip hss
+        header = foldr (\hd _ -> hd) "" headers
 
 tshow :: (Show a) => a -> Text
 tshow = T.pack . show
-
-printHeaderAndStats :: (Text, (Int, Double, Quartiles)) -> IO ()
-printHeaderAndStats (header, (len, average, Quartiles (minSample, first, median, third, maxSample))) = do
-  M.unless (T.strip header == "") (TIO.putStrLn header)
-  TIO.putStrLn (T.append "Samples:         " (tshow len))
-  TIO.putStrLn (T.append "Average:         " (tshow average))
-  TIO.putStrLn (T.append "Minimum:         " (tshow minSample))
-  TIO.putStrLn (T.append "25th percentile: " (tshow first))
-  TIO.putStrLn (T.append "50th percentile: " (tshow median))
-  TIO.putStrLn (T.append "75th percentile: " (tshow third))
-  TIO.putStrLn (T.append "Maximum:         " (tshow maxSample))
 
 dropLastWord :: Text -> Text
 dropLastWord s = T.dropWhileEnd (not . C.isSpace) (T.stripEnd s)
@@ -58,5 +57,4 @@ main = do
   ls <- T.lines <$> TIO.getContents
   let parsedLines = map parseLine ls
   let groupedLines = L.groupBy ((==) `F.on` fst) parsedLines
-  let headersAndStats = map headerAndAdditionalStatistics groupedLines
-  sequence_ (L.intersperse (putStrLn "") (map printHeaderAndStats headersAndStats))
+  sequence_ (L.intersperse (putStrLn "") (map headerAndStats groupedLines))
