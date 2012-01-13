@@ -19,20 +19,23 @@ import qualified Control.Monad as M
 
 newtype Stat = Stat (Text, Vector Double -> Double)
 
-numSamples, average, minimumStat, first, median, third, maximumStat :: Stat
+numSamples, average, minimumStat, first, median, third, ninetieth, ninetyNinth, oneNine, maximumStat :: Stat
 numSamples = Stat ("Samples: ", fromIntegral . V.length)
 average = Stat ("Average: ", SS.mean)
 minimumStat = Stat ("Minimum: ", V.minimum)
 first = Stat ("25th percentile: ", quantile 1)
 median = Stat ("50th percentile: ", quantile 2)
 third = Stat ("75th percentile: ", quantile 3)
+ninetieth = Stat ("90th percentile: ", S.weightedAvg 9 10)
+ninetyNinth = Stat ("99th percentile: ", S.weightedAvg 99 100)
+oneNine = Stat ("99.9th percentile: ", S.weightedAvg 999 1000)
 maximumStat = Stat ("Maximum: ", V.maximum)
 
 quantile :: Int -> Vector Double -> Double
 quantile q xs = S.weightedAvg q 4 xs
 
 allStats :: [Stat]
-allStats = [numSamples, average, minimumStat, first, median, third, maximumStat]
+allStats = [numSamples, average, minimumStat, first, median, third, ninetieth, ninetyNinth, oneNine, maximumStat]
 
 headerAndStats :: [(Text, Double)] -> IO ()
 headerAndStats hss = do
