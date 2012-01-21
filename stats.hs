@@ -7,6 +7,8 @@ import qualified Statistics.Sample as SS
 
 import qualified Data.Function as F
 import qualified Data.Char as C
+import Data.String (IsString)
+import qualified Data.String as Str
 import qualified Data.List as L
 import Data.Text(Text)
 import qualified Data.Text as T
@@ -16,6 +18,7 @@ import qualified Data.Vector as V
 
 import Control.Applicative ((<$>))
 import qualified Control.Monad as M
+import qualified Control.Arrow as A
 
 newtype Stat = Stat (Text, Vector Double -> Double)
 
@@ -43,6 +46,16 @@ headerAndStats hss = do
   mapM_ (\(Stat (text, stat)) -> TIO.putStrLn (T.append text ((tshow . stat . V.fromList) samples))) allStats
   where (headers, samples) = unzip hss
         header = foldr (\hd _ -> hd) "" headers
+
+stringOfList :: (IsString s) => [s] -> s
+stringOfList = foldr (\hd _ -> hd) (Str.fromString "")
+
+headerAndSamples :: [(Text, Double)] -> [(Text, Vector Double)]
+headerAndSamples tds =
+  map (A.second V.fromList) headerSampless
+  where groupedLines = L.groupBy ((==) `F.on` fst) tds
+        headersSampless = map unzip groupedLines
+        headerSampless = map (\(headers, samples) -> (stringOfList headers, samples)) headersSampless
 
 tshow :: (Show a) => a -> Text
 tshow = T.pack . show
