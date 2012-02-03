@@ -18,7 +18,6 @@ import qualified Data.Vector as V
 
 import Control.Applicative ((<$>))
 import qualified Control.Monad as M
-import qualified Control.Arrow as A
 
 newtype Stat = Stat (Text, Vector Double -> Double)
 
@@ -40,22 +39,18 @@ quantile q xs = S.weightedAvg q 4 xs
 allStats :: [Stat]
 allStats = [numSamples, average, minimumStat, first, median, third, ninetieth, ninetyNinth, oneNine, maximumStat]
 
-headerAndStats :: [(Text, Double)] -> IO ()
-headerAndStats hss = do
+headerAndStats :: Text -> Vector Double -> IO ()
+headerAndStats header samples = do
   M.unless (T.strip header == "") (TIO.putStrLn header)
-  mapM_ (\(Stat (text, stat)) -> TIO.putStrLn (T.append text ((tshow . stat . V.fromList) samples))) allStats
-  where (headers, samples) = unzip hss
-        header = foldr (\hd _ -> hd) "" headers
+  mapM_ (\(Stat (text, stat)) -> TIO.putStrLn (T.append text ((tshow . stat) samples))) allStats
 
 stringOfList :: (IsString s) => [s] -> s
 stringOfList = foldr (\hd _ -> hd) (Str.fromString "")
 
-headerAndSamples :: [(Text, Double)] -> [(Text, Vector Double)]
+headerAndSamples :: [(Text, Double)] -> (Text, Vector Double)
 headerAndSamples tds =
-  map (A.second V.fromList) headerSampless
-  where groupedLines = L.groupBy ((==) `F.on` fst) tds
-        headersSampless = map unzip groupedLines
-        headerSampless = map (\(headers, samples) -> (stringOfList headers, samples)) headersSampless
+  (stringOfList headers, V.fromList samples)
+  where (headers, samples) = unzip tds
 
 tshow :: (Show a) => a -> Text
 tshow = T.pack . show
@@ -73,4 +68,5 @@ main = do
   ls <- T.lines <$> TIO.getContents
   let parsedLines = map parseLine ls
   let groupedLines = L.groupBy ((==) `F.on` fst) parsedLines
-  sequence_ (L.intersperse (putStrLn "") (map headerAndStats groupedLines))
+  let headersAndSamples = map headerAndSamples groupedLines
+  sequence_ (L.intersperse (putStrLn "") (map (uncurry headerAndStats) headersAndSamples))
