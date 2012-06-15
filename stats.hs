@@ -1,7 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
 
--- cabal update && cabal install text statistics
-
 import qualified Statistics.Quantile as S
 import qualified Statistics.Sample   as SS
 
