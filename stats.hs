@@ -3,21 +3,21 @@
 -- cabal update && cabal install text statistics
 
 import qualified Statistics.Quantile as S
-import qualified Statistics.Sample as SS
+import qualified Statistics.Sample   as SS
 
-import qualified Data.Function as F
-import qualified Data.Char as C
-import Data.String (IsString)
-import qualified Data.String as Str
-import qualified Data.List as L
-import Data.Text(Text)
-import qualified Data.Text as T
-import qualified Data.Text.IO as TIO
-import Data.Vector (Vector)
-import qualified Data.Vector as V
+import qualified Data.Char           as C
+import qualified Data.Function       as F
+import qualified Data.List           as L
+import           Data.String         (IsString)
+import qualified Data.String         as Str
+import           Data.Text           (Text)
+import qualified Data.Text           as T
+import qualified Data.Text.IO        as TIO
+import           Data.Vector         (Vector)
+import qualified Data.Vector         as V
 
-import Control.Applicative ((<$>))
-import qualified Control.Monad as M
+import           Control.Applicative ((<$>))
+import qualified Control.Monad       as M
 
 newtype Stat = Stat (Text, Vector Double -> Double)
 
