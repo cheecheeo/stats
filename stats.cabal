@@ -60,3 +60,4 @@ Executable stats
   -- Build-tools:
 
   ghc-options: -Wall -O2 -threaded
+  ghc-prof-options: -Wall -auto-all -caf-all -threaded "-with-rtsopts=-p"
