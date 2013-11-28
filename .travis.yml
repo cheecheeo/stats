@@ -46,7 +46,7 @@ install:
 # build to fail.
 script:
  # -v2 provides useful information for debugging
- - cabal-1.18 configure --enable-tests --enable-benchmarks -v2
+ - cabal-1.18 configure --enable-tests --enable-benchmarks -v2 --ghc-options=-Werror
 
  # this builds all libraries and executables
  # (including tests/benchmarks)
