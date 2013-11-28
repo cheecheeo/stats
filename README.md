@@ -9,7 +9,6 @@ Some statistics about the byte length of the first 10,000 words in the dictionar
 
 ```
 > head -n 10000 /usr/share/dict/words | while read line; do echo $line | wc -c; done | stats
-
 Samples: 10000.0
 Average: 8.63739999999999
 Minimum: 1.0
