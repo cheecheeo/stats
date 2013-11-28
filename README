@@ -14,3 +14,5 @@ Minimum: 1.0
 99th percentile: 14.0
 99.9th percentile: 17.0
 Maximum: 23.0
+
+[![Build Status](https://secure.travis-ci.org/cheecheeo/stats.png)](http://travis-ci.org/cheecheeo/stats)
