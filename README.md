@@ -21,25 +21,20 @@ Minimum: 1.0
 Maximum: 23.0
 ```
 
-Some statistics about the number of $2 bills printed per year from 1980-2012:
+Some statistics about random big numbers:
 
 ```
-> curl --silent "https://explore.data.gov/resource/annual-production-figures-of-united-states-currency.csv" \
-  | perl -pe 's/(FY \d{4})/"$1"/g;s|N/A|"0"|g' \
-  | awk -F'","|^"|"$' '{sub("^\"","")} {print $3}' \
-  | grep -v '^$' \
-  | perl -pe 's/,//g' \
-  | stats
-Samples: 33.0
-Average: 3.4133333333333336e7
-Minimum: 0.0
-25th percentile: 0.0
-50th percentile: 0.0
-75th percentile: 0.0
-90th percentile: 1.1776000000000001e8
-99th percentile: 4.0447999999999994e8
-99.9th percentile: 4.78208e8
-Maximum: 4.864e8
+> shuf -i 1-10000000000000 -n 1200 | stats
+Samples: 1200
+Average: 5037872165956.91602
+Minimum: 7642355649
+25th percentile: 2569285758532.25000
+50th percentile: 5070913140374.00000
+75th percentile: 7457275094099.50000
+90th percentile: 9086264199188.09961
+99th percentile: 9940644165289.33984
+99.9th percentile: 9984860658279.28711
+Maximum: 9994665004172
 ```
 
 [![Build Status](https://secure.travis-ci.org/cheecheeo/stats.png)](http://travis-ci.org/cheecheeo/stats)
