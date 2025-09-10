@@ -55,8 +55,9 @@ Executable stats
 
   -- Packages needed in order to build this package.
   Build-depends: base >= 3 && < 5,
-                 text >= 0.10 && < 2.1,
                  statistics == 0.10.*,
+                 text >= 0.10 && < 2.1,
+                 formatting == 7.2.*,
                  vector >= 0.9 && < 0.14
 
   -- Modules not exported by this package.

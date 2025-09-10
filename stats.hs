@@ -1,5 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
+import Formatting ((%))
+import qualified Formatting as Fmt
+
 import qualified Statistics.Quantile as S
 import qualified Statistics.Sample   as SS
 
@@ -14,33 +17,27 @@ import qualified Data.Text.IO        as TIO
 import           Data.Vector         (Vector)
 import qualified Data.Vector         as V
 
-import           Control.Applicative ((<$>))
 import qualified Control.Monad       as M
 
-newtype Stat = Stat (Text, Vector Double -> Double)
-
-numSamples, average, minimumStat, first, median, third, ninetieth, ninetyNinth, oneNine, maximumStat :: Stat
-numSamples = Stat ("Samples: ", fromIntegral . V.length)
-average = Stat ("Average: ", SS.mean)
-minimumStat = Stat ("Minimum: ", V.minimum)
-first = Stat ("25th percentile: ", quantile 1)
-median = Stat ("50th percentile: ", quantile 2)
-third = Stat ("75th percentile: ", quantile 3)
-ninetieth = Stat ("90th percentile: ", S.weightedAvg 9 10)
-ninetyNinth = Stat ("99th percentile: ", S.weightedAvg 99 100)
-oneNine = Stat ("99.9th percentile: ", S.weightedAvg 999 1000)
-maximumStat = Stat ("Maximum: ", V.maximum)
+fmt :: Fmt.Format r (Double -> r)
+fmt = Fmt.fixed 5
 
 quantile :: Int -> Vector Double -> Double
 quantile q xs = S.weightedAvg q 4 xs
 
-allStats :: [Stat]
-allStats = [numSamples, average, minimumStat, first, median, third, ninetieth, ninetyNinth, oneNine, maximumStat]
-
 headerAndStats :: Text -> Vector Double -> IO ()
 headerAndStats header samples = do
   M.unless (T.strip header == "") (TIO.putStrLn header)
-  mapM_ (\(Stat (text, stat)) -> TIO.putStrLn (T.append text ((tshow . stat) samples))) allStats
+  Fmt.fprint ("Samples: " % Fmt.int % "\n") (V.length samples)
+  Fmt.fprint ("Average: " % fmt % "\n") (SS.mean samples)
+  Fmt.fprint ("Minimum: " % Fmt.float % "\n") (V.minimum samples)
+  Fmt.fprint ("25th percentile: " % fmt % "\n") (quantile 1 samples)
+  Fmt.fprint ("50th percentile: " % fmt % "\n") (quantile 2 samples)
+  Fmt.fprint ("75th percentile: " % fmt % "\n") (quantile 3 samples)
+  Fmt.fprint ("90th percentile: " % fmt % "\n") (S.weightedAvg 9 10 samples)
+  Fmt.fprint ("99th percentile: " % fmt % "\n") (S.weightedAvg 99 100 samples)
+  Fmt.fprint ("99.9th percentile: " % fmt % "\n") (S.weightedAvg 999 1000 samples)
+  Fmt.fprint ("Maximum: " % Fmt.float % "\n") (V.maximum samples)
 
 stringOfList :: (IsString s) => [s] -> s
 stringOfList = foldr (\hd _ -> hd) (Str.fromString "")
@@ -50,16 +47,13 @@ headerAndSamples tds =
   (stringOfList headers, V.fromList samples)
   where (headers, samples) = unzip tds
 
-tshow :: (Show a) => a -> Text
-tshow = T.pack . show
-
 dropLastWord :: Text -> Text
-dropLastWord s = T.dropWhileEnd (not . C.isSpace) (T.stripEnd s)
+dropLastWord = (T.dropWhileEnd (not . C.isSpace)) . T.stripEnd
 
 parseLine :: Text -> (Text, Double)
-parseLine s = (T.strip header, (read . T.unpack) measurement)
-  where header = dropLastWord s
-        measurement = last $ T.words s
+parseLine l = (T.strip header, (read . T.unpack) measurement)
+  where header = dropLastWord l
+        measurement = last $ T.words l
 
 main :: IO ()
 main = do
